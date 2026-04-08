@@ -1,2 +1,10 @@
-[]
-
+[
+  {
+    "id": "672d491c-881a-4517-a2c0-167ae82918a3",
+    "createdAt": "2026-04-08T14:33:27.989Z",
+    "username": "admin",
+    "displayName": "管理员",
+    "role": "admin",
+    "passwordHash": "pbkdf2$120000$u32WfyTu70EcbtLs314+UA==$8tcK+J3gkWMYad3vRyPIEX8ezryGvtSbKHGXQiRA1Fo="
+  }
+]
