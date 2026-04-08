@@ -4,6 +4,7 @@ import type {
   CreateUserInput,
   QuestionRecord,
   QuestionRepo,
+  UpdateUserInput,
   UserRecord,
   UserStore
 } from "./types";
@@ -286,5 +287,34 @@ export class GitHubUserStore implements UserStore {
     );
 
     return user;
+  }
+
+  async update(id: string, input: UpdateUserInput) {
+    const result = await updateJsonFileInGitHub<UserRecord[]>(
+      this.env,
+      USERS_PATH,
+      (current) =>
+        current.map((user) => (user.id === id ? { ...user, ...input } : user)),
+      `feat(data): update user ${id}`
+    );
+
+    return result.data.find((user) => user.id === id) ?? null;
+  }
+
+  async delete(id: string) {
+    let removed = false;
+
+    await updateJsonFileInGitHub<UserRecord[]>(
+      this.env,
+      USERS_PATH,
+      (current) => {
+        const next = current.filter((user) => user.id !== id);
+        removed = next.length !== current.length;
+        return next;
+      },
+      `feat(data): delete user ${id}`
+    );
+
+    return removed;
   }
 }

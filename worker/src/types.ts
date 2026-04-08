@@ -54,6 +54,13 @@ export interface CreateUserInput {
   passwordHash: string;
 }
 
+export interface UpdateUserInput {
+  username?: string;
+  displayName?: string;
+  role?: UserRole;
+  passwordHash?: string;
+}
+
 export interface CreateQuestionInput {
   category: string;
   question: string;
@@ -67,6 +74,8 @@ export interface UserStore {
   getById(id: string): Promise<UserRecord | null>;
   list(): Promise<UserRecord[]>;
   create(input: CreateUserInput): Promise<UserRecord>;
+  update(id: string, input: UpdateUserInput): Promise<UserRecord | null>;
+  delete(id: string): Promise<boolean>;
 }
 
 export interface QuestionRepo {
@@ -95,4 +104,3 @@ export interface AppDeps {
   now?: () => string;
   randomId?: () => string;
 }
-

@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 
 export function AppShell() {
@@ -21,14 +21,27 @@ export function AppShell() {
             </Link>
           )}
 
-          <Link className="primary-button" to="/upload">
+          <NavLink
+            className={({ isActive }) => (isActive ? "nav-button nav-button--active" : "nav-button")}
+            to="/study/python"
+          >
+            刷题主页
+          </NavLink>
+
+          <NavLink
+            className={({ isActive }) => (isActive ? "nav-button nav-button--active" : "nav-button")}
+            to="/upload"
+          >
             上传题目
-          </Link>
+          </NavLink>
 
           {user?.role === "admin" ? (
-            <Link className="ghost-button" to="/admin/users">
+            <NavLink
+              className={({ isActive }) => (isActive ? "nav-button nav-button--active" : "nav-button")}
+              to="/admin/users"
+            >
               管理账号
-            </Link>
+            </NavLink>
           ) : null}
 
           {user ? (
@@ -45,4 +58,3 @@ export function AppShell() {
     </div>
   );
 }
-

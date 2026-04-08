@@ -72,6 +72,24 @@ export const api = {
       method: "POST",
       body: JSON.stringify(input)
     });
+  },
+  updateUser(
+    id: string,
+    input: {
+      username?: string;
+      displayName?: string;
+      password?: string;
+      role?: "admin" | "user";
+    }
+  ) {
+    return request<{ user: User }>(`/api/admin/users/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(input)
+    });
+  },
+  deleteUser(id: string) {
+    return request<void>(`/api/admin/users/${encodeURIComponent(id)}`, {
+      method: "DELETE"
+    });
   }
 };
-

@@ -70,6 +70,7 @@ button {
 .status-pill,
 .ghost-button,
 .primary-button,
+.nav-button,
 .category-tab {
   border-radius: 999px;
   padding: 0.72rem 1rem;
@@ -81,12 +82,25 @@ button {
 
 .ghost-button:hover,
 .primary-button:hover,
+.nav-button:hover,
 .category-tab:hover {
   transform: translateY(-1px);
   box-shadow: 0 10px 24px rgba(31, 61, 43, 0.12);
 }
 
 .primary-button {
+  border: none;
+  background: linear-gradient(135deg, #1f3d2b 0%, #3f6a4d 100%);
+  color: #f7faf7;
+}
+
+.nav-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-button--active {
   border: none;
   background: linear-gradient(135deg, #1f3d2b 0%, #3f6a4d 100%);
   color: #f7faf7;
@@ -318,6 +332,22 @@ button {
   gap: 4px;
 }
 
+.user-list__header {
+  display: grid;
+  gap: 4px;
+}
+
+.inline-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.stack-form--compact {
+  margin-top: 12px;
+}
+
 @media (max-width: 900px) {
   .topbar,
   .hero-panel,
@@ -336,4 +366,3 @@ button {
     padding: 22px;
   }
 }
-

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { createApp } from "../src/app";
-import type { CreateUserInput, QuestionRecord, UserRecord, UserRole } from "../src/types";
+import type { CreateUserInput, QuestionRecord, UpdateUserInput, UserRecord, UserRole } from "../src/types";
 
 function createMemorySessionService() {
   const sessions = new Map<string, { userId: string; role: UserRole }>();
@@ -86,6 +86,22 @@ function createInMemoryApp() {
         };
         users.push(user);
         return user;
+      },
+      async update(id: string, input: UpdateUserInput) {
+        const user = users.find((item) => item.id === id) ?? null;
+        if (!user) {
+          return null;
+        }
+        Object.assign(user, input);
+        return user;
+      },
+      async delete(id: string) {
+        const index = users.findIndex((item) => item.id === id);
+        if (index === -1) {
+          return false;
+        }
+        users.splice(index, 1);
+        return true;
       }
     },
     questionRepo: {

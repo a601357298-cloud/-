@@ -20,6 +20,13 @@ interface CreateUserBody {
   role?: UserRole;
 }
 
+interface UpdateUserBody {
+  username?: string;
+  displayName?: string;
+  password?: string;
+  role?: UserRole;
+}
+
 function toPublicUser(user: UserRecord): PublicUser {
   return {
     id: user.id,
@@ -240,8 +247,83 @@ export function createApp(deps: AppDeps) {
         );
       }
 
+      if (url.pathname.startsWith("/api/admin/users/")) {
+        const currentUser = await getCurrentUser(request, deps);
+        if (!currentUser || currentUser.role !== "admin") {
+          return json({ error: "没有权限。" }, { status: 403 }, request, deps.uiOrigin);
+        }
+
+        const userId = sanitizeText(url.pathname.slice("/api/admin/users/".length));
+        if (!userId) {
+          return json({ error: "缺少用户 ID。" }, { status: 400 }, request, deps.uiOrigin);
+        }
+
+        if (request.method === "PATCH") {
+          const body = await readJson<UpdateUserBody>(request);
+          const username = sanitizeText(body?.username);
+          const displayName = sanitizeText(body?.displayName);
+          const password = sanitizeText(body?.password);
+          const role = body?.role === "admin" ? "admin" : body?.role === "user" ? "user" : undefined;
+
+          const targetUser = await deps.userStore.getById(userId);
+          if (!targetUser) {
+            return json({ error: "账号不存在。" }, { status: 404 }, request, deps.uiOrigin);
+          }
+
+          if (!username && !displayName && !password && !role) {
+            return json({ error: "没有可更新的内容。" }, { status: 400 }, request, deps.uiOrigin);
+          }
+
+          if (username && username !== targetUser.username) {
+            const existing = await deps.userStore.getByUsername(username);
+            if (existing && existing.id !== userId) {
+              return json({ error: "用户名已存在。" }, { status: 409 }, request, deps.uiOrigin);
+            }
+          }
+
+          const updateInput: {
+            username?: string;
+            displayName?: string;
+            role?: UserRole;
+            passwordHash?: string;
+          } = {};
+
+          if (username) {
+            updateInput.username = username;
+          }
+          if (displayName) {
+            updateInput.displayName = displayName;
+          }
+          if (role) {
+            updateInput.role = role;
+          }
+          if (password) {
+            updateInput.passwordHash = await deps.passwordService.hash(password);
+          }
+
+          const updated = await deps.userStore.update(userId, updateInput);
+          if (!updated) {
+            return json({ error: "账号不存在。" }, { status: 404 }, request, deps.uiOrigin);
+          }
+
+          return json({ user: toPublicUser(updated) }, { status: 200 }, request, deps.uiOrigin);
+        }
+
+        if (request.method === "DELETE") {
+          if (currentUser.id === userId) {
+            return json({ error: "不能删除当前登录账号。" }, { status: 400 }, request, deps.uiOrigin);
+          }
+
+          const deleted = await deps.userStore.delete(userId);
+          if (!deleted) {
+            return json({ error: "账号不存在。" }, { status: 404 }, request, deps.uiOrigin);
+          }
+
+          return empty({ status: 204 }, request, deps.uiOrigin);
+        }
+      }
+
       return json({ error: "Not found" }, { status: 404 }, request, deps.uiOrigin);
     }
   };
 }
-
