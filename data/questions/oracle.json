@@ -7,6 +7,14 @@
     "authorName": "系统预置",
     "createdAt": "2026-04-08T00:00:00.000Z",
     "createdByUserId": "seed"
+  },
+  {
+    "id": "3a31babe-a772-4da7-ab07-2765583725f8",
+    "category": "oracle",
+    "question": "数据文件可以删除吗",
+    "answer": "可以，orcacle 中数据文件只要保证没有存储对象就可以删除，但神通中不可以",
+    "authorName": "管理员",
+    "createdAt": "2026-04-08T14:59:53.538Z",
+    "createdByUserId": "672d491c-881a-4517-a2c0-167ae82918a3"
   }
 ]
-
