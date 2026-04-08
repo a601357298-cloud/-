@@ -2,6 +2,7 @@
   "name": "answer-record-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-04-08",
+  "workers_dev": true,
   "vars": {
     "GITHUB_REPO": "a601357298-cloud/-",
     "UI_ORIGIN": "https://a601357298-cloud.github.io"
