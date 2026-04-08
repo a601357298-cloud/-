@@ -63,7 +63,7 @@ export function createSessionService(secret: string): SessionService {
       const signature = await createSignature(secret, payloadBase64);
       const token = `${payloadBase64}.${signature}`;
 
-      return `session=${token}; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=${SESSION_MAX_AGE}`;
+      return `session=${token}; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=${SESSION_MAX_AGE}`;
     },
     async read(request) {
       const cookies = parseCookies(request.headers.get("cookie"));
@@ -94,7 +94,7 @@ export function createSessionService(secret: string): SessionService {
       };
     },
     clear() {
-      return "session=; Path=/; HttpOnly; SameSite=Lax; Secure; Max-Age=0";
+      return "session=; Path=/; HttpOnly; SameSite=None; Secure; Max-Age=0";
     }
   };
 }
