@@ -1,0 +1,12 @@
+[
+  {
+    "id": "graph-db-1",
+    "category": "graph-db",
+    "question": "图数据库适合解决哪些类型的问题？",
+    "answer": "适合强关系、路径查询、推荐系统和复杂网络分析等场景，尤其是多跳关系查询明显优于传统关系型表连接。",
+    "authorName": "系统预置",
+    "createdAt": "2026-04-08T00:00:00.000Z",
+    "createdByUserId": "seed"
+  }
+]
+

@@ -1,0 +1,21 @@
+[
+  {
+    "id": "python-1",
+    "category": "python",
+    "question": "Python 中列表推导式和生成器表达式有什么区别？",
+    "answer": "列表推导式会立即生成完整列表，适合需要重复访问结果的场景。生成器表达式按需产出元素，占用内存更低，更适合大数据流处理。",
+    "authorName": "系统预置",
+    "createdAt": "2026-04-08T00:00:00.000Z",
+    "createdByUserId": "seed"
+  },
+  {
+    "id": "python-2",
+    "category": "python",
+    "question": "解释一下 Python 中深拷贝和浅拷贝的区别。",
+    "answer": "浅拷贝只复制最外层容器，内部嵌套对象仍共享引用。深拷贝会递归复制所有层级，修改副本不会影响原对象。",
+    "authorName": "系统预置",
+    "createdAt": "2026-04-08T00:00:00.000Z",
+    "createdByUserId": "seed"
+  }
+]
+

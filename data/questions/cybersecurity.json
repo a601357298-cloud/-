@@ -1,0 +1,12 @@
+[
+  {
+    "id": "cybersecurity-1",
+    "category": "cybersecurity",
+    "question": "SQL 注入的防护核心原则是什么？",
+    "answer": "核心是参数化查询，同时配合最小权限、输入校验和审计日志。",
+    "authorName": "系统预置",
+    "createdAt": "2026-04-08T00:00:00.000Z",
+    "createdByUserId": "seed"
+  }
+]
+

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "wps-1",
+    "category": "wps",
+    "question": "WPS 表格里常见的查找引用函数有哪些？",
+    "answer": "第一版可以回答 VLOOKUP、INDEX + MATCH 和 XLOOKUP 的适用场景以及差异。",
+    "authorName": "系统预置",
+    "createdAt": "2026-04-08T00:00:00.000Z",
+    "createdByUserId": "seed"
+  }
+]
+

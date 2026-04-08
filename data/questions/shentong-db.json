@@ -1,0 +1,12 @@
+[
+  {
+    "id": "shentong-1",
+    "category": "shentong-db",
+    "question": "神通数据库常见的备份恢复思路有哪些？",
+    "answer": "可以从物理备份、逻辑导出和日志恢复三条线回答，并说明不同场景下的恢复粒度和恢复时间目标。",
+    "authorName": "系统预置",
+    "createdAt": "2026-04-08T00:00:00.000Z",
+    "createdByUserId": "seed"
+  }
+]
+

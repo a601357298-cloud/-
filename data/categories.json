@@ -1,0 +1,45 @@
+[
+  {
+    "slug": "shentong-db",
+    "name": "神通数据库",
+    "order": 1,
+    "isDefault": false
+  },
+  {
+    "slug": "oracle",
+    "name": "Oracle",
+    "order": 2,
+    "isDefault": false
+  },
+  {
+    "slug": "python",
+    "name": "Python",
+    "order": 3,
+    "isDefault": true
+  },
+  {
+    "slug": "wps",
+    "name": "WPS",
+    "order": 4,
+    "isDefault": false
+  },
+  {
+    "slug": "cybersecurity",
+    "name": "网络安全",
+    "order": 5,
+    "isDefault": false
+  },
+  {
+    "slug": "graph-db",
+    "name": "图数据库",
+    "order": 6,
+    "isDefault": false
+  },
+  {
+    "slug": "other",
+    "name": "其他",
+    "order": 7,
+    "isDefault": false
+  }
+]
+

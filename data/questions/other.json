@@ -1,0 +1,12 @@
+[
+  {
+    "id": "other-1",
+    "category": "other",
+    "question": "面试中如何结构化介绍一个项目？",
+    "answer": "可以按背景、目标、方案、你的职责、结果和复盘来组织表达，避免只罗列技术名词。",
+    "authorName": "系统预置",
+    "createdAt": "2026-04-08T00:00:00.000Z",
+    "createdByUserId": "seed"
+  }
+]
+
