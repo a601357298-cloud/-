@@ -11,7 +11,7 @@
 
 - 前端：Vite + React + TypeScript + Hash Router
 - 后端：Cloudflare Workers
-- 数据源：GitHub 仓库中的 `data/categories.json`、`data/questions/*.json` 与 `data/users.json`
+- 数据源：题库保存在 GitHub 仓库中的 `data/categories.json` 与 `data/questions/*.json`，账号保存在 Cloudflare D1
 - 部署：GitHub Pages + Cloudflare Workers
 
 ## 项目结构

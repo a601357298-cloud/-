@@ -3,6 +3,13 @@
   "main": "src/index.ts",
   "compatibility_date": "2026-04-08",
   "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "answer-records",
+      "database_id": "90d11c57-cd56-4310-b6e9-b8a79dd26f03"
+    }
+  ],
   "vars": {
     "GITHUB_REPO": "a601357298-cloud/-",
     "UI_ORIGIN": "https://a601357298-cloud.github.io"

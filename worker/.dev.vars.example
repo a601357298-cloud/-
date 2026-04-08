@@ -2,5 +2,4 @@ COOKIE_SECRET=replace-with-a-long-random-secret
 GITHUB_TOKEN=replace-with-a-github-token-that-can-write-to-a601357298-cloud-slash-minus
 BOOTSTRAP_ADMIN_USERNAME=admin
 BOOTSTRAP_ADMIN_DISPLAY_NAME=管理员
-BOOTSTRAP_ADMIN_PASSWORD_HASH=pbkdf2$120000$replace$replace
-
+BOOTSTRAP_ADMIN_PASSWORD_HASH=pbkdf2$100000$replace$replace

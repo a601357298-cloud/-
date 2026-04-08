@@ -4,7 +4,8 @@
 
 - 网站账号登录
 - 读取 GitHub 仓库中的题库数据
-- 把新题目和站内账号都写回 `a601357298-cloud/-` 仓库中的 JSON 文件
+- 把新题目写回 `a601357298-cloud/-` 仓库中的 JSON 文件
+- 把站内账号保存在 Cloudflare D1，不再公开暴露在 GitHub 仓库里
 
 ## 1. 配置密钥
 
@@ -15,6 +16,12 @@
 - `BOOTSTRAP_ADMIN_USERNAME`
 - `BOOTSTRAP_ADMIN_DISPLAY_NAME`
 - `BOOTSTRAP_ADMIN_PASSWORD_HASH`
+
+另外需要在 `worker/wrangler.jsonc` 里绑定一个 D1 数据库：
+
+- `binding: DB`
+- `database_name: answer-records`
+- `database_id: <Cloudflare D1 database id>`
 
 管理员密码哈希可以用下面命令生成：
 
@@ -31,6 +38,7 @@ npm run dev -w worker
 ## 3. 部署
 
 ```bash
+npx wrangler d1 migrations apply answer-records --remote
 npx wrangler deploy
 ```
 

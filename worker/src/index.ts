@@ -1,9 +1,12 @@
 import { createApp } from "./app";
 import { createPasswordService } from "./auth/password";
 import { createSessionService } from "./auth/session";
-import { GitHubQuestionRepo, GitHubUserStore } from "./github";
+import { D1UserStore } from "./database";
+import { GitHubQuestionRepo } from "./github";
+import type { UserStore } from "./types";
 
 export interface Env {
+  DB: D1Database;
   COOKIE_SECRET: string;
   GITHUB_TOKEN: string;
   GITHUB_REPO: string;
@@ -17,7 +20,7 @@ function createRandomId() {
   return crypto.randomUUID();
 }
 
-async function ensureBootstrapAdmin(env: Env, userStore: GitHubUserStore) {
+export async function ensureBootstrapAdmin(env: Env, userStore: UserStore) {
   if (
     !env.BOOTSTRAP_ADMIN_USERNAME ||
     !env.BOOTSTRAP_ADMIN_DISPLAY_NAME ||
@@ -46,7 +49,7 @@ export default {
       repoFullName: env.GITHUB_REPO,
       token: env.GITHUB_TOKEN
     };
-    const userStore = new GitHubUserStore(githubEnv, now, createRandomId);
+    const userStore = new D1UserStore(env.DB, now, createRandomId);
     await ensureBootstrapAdmin(env, userStore);
 
     const app = createApp({

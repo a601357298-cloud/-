@@ -62,7 +62,7 @@ export function corsPreflight(request: Request, uiOrigin?: string) {
     }
   }
 
-  headers.set("access-control-allow-methods", "GET,POST,OPTIONS");
+  headers.set("access-control-allow-methods", "GET,POST,PATCH,DELETE,OPTIONS");
   headers.set("access-control-allow-headers", "content-type");
 
   return new Response(null, { status: 204, headers });
@@ -71,4 +71,3 @@ export function corsPreflight(request: Request, uiOrigin?: string) {
 export function sanitizeText(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
-
