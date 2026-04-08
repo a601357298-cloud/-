@@ -10,8 +10,8 @@
 ## 技术栈
 
 - 前端：Vite + React + TypeScript + Hash Router
-- 后端：Cloudflare Workers + D1
-- 数据源：GitHub 仓库中的 `data/categories.json` 与 `data/questions/*.json`
+- 后端：Cloudflare Workers
+- 数据源：GitHub 仓库中的 `data/categories.json`、`data/questions/*.json` 与 `data/users.json`
 - 部署：GitHub Pages + Cloudflare Workers
 
 ## 项目结构
@@ -33,7 +33,7 @@ npm install
 
 ### 2. 启动 Worker
 
-先按 [worker/README.md](/Users/sk1/Desktop/未命名文件夹/worker/README.md) 配置 D1 和 `.dev.vars`：
+先按 [worker/README.md](/Users/sk1/Desktop/未命名文件夹/worker/README.md) 配置 `.dev.vars`：
 
 ```bash
 npm run dev -w worker
@@ -66,4 +66,3 @@ npm run build
 2. 在 GitHub 仓库 `Secrets and variables -> Actions` 中添加 `VITE_API_BASE_URL`。
 3. 把代码推到 `main`，GitHub Actions 会发布到 `https://a601357298-cloud.github.io/-/`。
 4. Worker 中保存 `GITHUB_TOKEN`、`COOKIE_SECRET` 和管理员引导变量。
-

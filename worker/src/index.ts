@@ -1,11 +1,9 @@
 import { createApp } from "./app";
 import { createPasswordService } from "./auth/password";
 import { createSessionService } from "./auth/session";
-import { GitHubQuestionRepo } from "./github";
-import { D1UserStore } from "./storage/d1-user-store";
+import { GitHubQuestionRepo, GitHubUserStore } from "./github";
 
 export interface Env {
-  DB: D1Database;
   COOKIE_SECRET: string;
   GITHUB_TOKEN: string;
   GITHUB_REPO: string;
@@ -19,7 +17,7 @@ function createRandomId() {
   return crypto.randomUUID();
 }
 
-async function ensureBootstrapAdmin(env: Env, userStore: D1UserStore) {
+async function ensureBootstrapAdmin(env: Env, userStore: GitHubUserStore) {
   if (
     !env.BOOTSTRAP_ADMIN_USERNAME ||
     !env.BOOTSTRAP_ADMIN_DISPLAY_NAME ||
@@ -44,15 +42,16 @@ async function ensureBootstrapAdmin(env: Env, userStore: D1UserStore) {
 export default {
   async fetch(request: Request, env: Env) {
     const now = () => new Date().toISOString();
-    const userStore = new D1UserStore(env.DB, now, createRandomId);
+    const githubEnv = {
+      repoFullName: env.GITHUB_REPO,
+      token: env.GITHUB_TOKEN
+    };
+    const userStore = new GitHubUserStore(githubEnv, now, createRandomId);
     await ensureBootstrapAdmin(env, userStore);
 
     const app = createApp({
       userStore,
-      questionRepo: new GitHubQuestionRepo({
-        repoFullName: env.GITHUB_REPO,
-        token: env.GITHUB_TOKEN
-      }),
+      questionRepo: new GitHubQuestionRepo(githubEnv),
       passwordService: createPasswordService(),
       sessionService: createSessionService(env.COOKIE_SECRET),
       uiOrigin: env.UI_ORIGIN,
@@ -63,4 +62,3 @@ export default {
     return app.fetch(request);
   }
 };
-
