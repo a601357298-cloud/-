@@ -7,10 +7,9 @@ if (!password) {
   process.exit(1);
 }
 
-const iterations = 120000;
+const iterations = 100000;
 const salt = randomBytes(16);
 const derived = pbkdf2Sync(password, salt, iterations, 32, "sha256");
 const encoded = `pbkdf2$${iterations}$${salt.toString("base64")}$${derived.toString("base64")}`;
 
 console.log(encoded);
-

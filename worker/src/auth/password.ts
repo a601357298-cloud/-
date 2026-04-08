@@ -1,6 +1,6 @@
 import type { PasswordService } from "../types";
 
-const ITERATIONS = 120_000;
+export const PASSWORD_ITERATIONS = 100_000;
 const KEY_LENGTH = 32;
 const textEncoder = new TextEncoder();
 
@@ -44,7 +44,7 @@ async function deriveBits(password: string, salt: Uint8Array) {
       name: "PBKDF2",
       hash: "SHA-256",
       salt: salt as BufferSource,
-      iterations: ITERATIONS
+      iterations: PASSWORD_ITERATIONS
     },
     material,
     KEY_LENGTH * 8
@@ -58,7 +58,7 @@ export function createPasswordService(): PasswordService {
     async hash(password) {
       const salt = crypto.getRandomValues(new Uint8Array(16));
       const derived = await deriveBits(password, salt);
-      return `pbkdf2$${ITERATIONS}$${toBase64(salt)}$${toBase64(derived)}`;
+      return `pbkdf2$${PASSWORD_ITERATIONS}$${toBase64(salt)}$${toBase64(derived)}`;
     },
     async verify(password, passwordHash) {
       const [algorithm, iterationText, saltText, hashText] = passwordHash.split("$");

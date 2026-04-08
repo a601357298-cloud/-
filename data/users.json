@@ -5,6 +5,6 @@
     "username": "admin",
     "displayName": "管理员",
     "role": "admin",
-    "passwordHash": "pbkdf2$120000$u32WfyTu70EcbtLs314+UA==$8tcK+J3gkWMYad3vRyPIEX8ezryGvtSbKHGXQiRA1Fo="
+    "passwordHash": "pbkdf2$100000$6KafYT58VFNJi2YwziC2hg==$zGqHtZRwNEHY83HpnpV/6qN12sNGXbXKu11PYQ0sV0c="
   }
 ]
