@@ -38,6 +38,8 @@ jobs:
       - name: Build mainland site
         run: npm run build -w mainland-web
         env:
+          # TODO: 将这里的 https://mainland-answer-record-api.a601357298.workers.dev
+          # 替换为您配置好的自定义域名（方案一）或反代域名（方案二）
           VITE_API_BASE_URL: https://mainland-answer-record-api.a601357298.workers.dev
 
       - name: Assemble Pages artifact
