@@ -1,0 +1,18 @@
+{
+  "name": "mainland-answer-record-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-04-09",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mainland-answer-records",
+      "database_id": "49de91c2-868a-4258-ad3a-d5c3f81ed913"
+    }
+  ],
+  "vars": {
+    "GITHUB_REPO": "a601357298-cloud/-",
+    "GITHUB_DATA_ROOT": "data-mainland",
+    "UI_ORIGIN": "https://a601357298-cloud.github.io"
+  }
+}

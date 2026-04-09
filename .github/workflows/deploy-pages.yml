@@ -30,10 +30,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build site
+      - name: Build existing site
         run: npm run build -w web
         env:
           VITE_API_BASE_URL: https://answer-record-api.a601357298.workers.dev
+
+      - name: Build mainland site
+        run: npm run build -w mainland-web
+        env:
+          VITE_API_BASE_URL: https://mainland-answer-record-api.a601357298.workers.dev
+
+      - name: Assemble Pages artifact
+        run: |
+          rm -rf site
+          mkdir -p site/mainland
+          cp -R web/dist/. site/
+          cp -R mainland-web/dist/. site/mainland/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -41,7 +53,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: web/dist
+          path: site
 
   deploy:
     environment:

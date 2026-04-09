@@ -6,12 +6,13 @@
 - 浏览公开开放
 - 上传题目需要站内账号登录
 - Worker 用站长自己的 GitHub Token 统一把题目写回仓库
+- 新增规划中的 `/mainland/` 子站，使用独立数据与更稳的大陆访问链路
 
 ## 技术栈
 
 - 前端：Vite + React + TypeScript + Hash Router
 - 后端：Cloudflare Workers
-- 数据源：题库保存在 GitHub 仓库中的 `data/categories.json` 与 `data/questions/*.json`，账号保存在 Cloudflare D1
+- 数据源：旧站题库保存在 GitHub 仓库中的 `data/categories.json` 与 `data/questions/*.json`，旧站账号保存在 Cloudflare D1；新站 `/mainland/` 使用独立 D1 与 `data-mainland/` 备份目录
 - 部署：GitHub Pages + Cloudflare Workers
 
 ## 项目结构
@@ -20,6 +21,9 @@
 web/                  React 前端
 worker/               Cloudflare Worker
 data/                 仓库题库数据
+mainland-web/         大陆优化子站前端
+mainland-worker/      大陆优化子站 Worker
+data-mainland/        大陆优化子站 GitHub 备份目录
 .github/workflows/    GitHub Pages 工作流
 ```
 

@@ -3,13 +3,17 @@
   "private": true,
   "version": "0.1.0",
   "workspaces": [
+    "mainland-web",
+    "mainland-worker",
     "web",
     "worker"
   ],
   "scripts": {
-    "build": "npm run build -w worker && npm run build -w web",
-    "test": "npm run test -w worker && npm run test -w web",
+    "build": "npm run build -w worker && npm run build -w mainland-worker && npm run build -w web && npm run build -w mainland-web",
+    "test": "npm run test -w worker && npm run test -w mainland-worker && npm run test -w web && npm run test -w mainland-web",
     "test:web": "npm run test -w web",
-    "test:worker": "npm run test -w worker"
+    "test:worker": "npm run test -w worker",
+    "test:mainland-web": "npm run test -w mainland-web",
+    "test:mainland-worker": "npm run test -w mainland-worker"
   }
 }
