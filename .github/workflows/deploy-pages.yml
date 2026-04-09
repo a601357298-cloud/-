@@ -35,17 +35,10 @@ jobs:
         env:
           VITE_API_BASE_URL: https://answer-record-api.a601357298.workers.dev
 
-      - name: Build mainland site
-        run: npm run build -w mainland-web
-        env:
-          VITE_API_BASE_URL: https://api.sk1hao.com
-
       - name: Assemble Pages artifact
         run: |
           rm -rf site
-          mkdir -p site/mainland
           cp -R web/dist/. site/
-          cp -R mainland-web/dist/. site/mainland/
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

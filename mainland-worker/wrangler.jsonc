@@ -19,6 +19,6 @@
   "vars": {
     "GITHUB_REPO": "a601357298-cloud/-",
     "GITHUB_DATA_ROOT": "data-mainland",
-    "UI_ORIGIN": "https://a601357298-cloud.github.io"
+    "UI_ORIGIN": "https://a601357298-cloud.github.io,https://mainland.sk1hao.com,https://mainland-answer-record-site.pages.dev"
   }
 }
