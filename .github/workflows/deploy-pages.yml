@@ -38,7 +38,7 @@ jobs:
       - name: Build mainland site
         run: npm run build -w mainland-web
         env:
-          VITE_API_BASE_URL: https://mainland-answer-record-api.a601357298.workers.dev
+          VITE_API_BASE_URL: https://api.sk1hao.com
 
       - name: Assemble Pages artifact
         run: |
