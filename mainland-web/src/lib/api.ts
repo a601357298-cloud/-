@@ -1,6 +1,24 @@
 import type { Category, Question, User } from "../types";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
+export function resolveApiBaseUrl(configuredValue: string | undefined, hostname?: string) {
+  if (configuredValue) {
+    return configuredValue;
+  }
+
+  if (
+    hostname === "mainland.sk1hao.com" ||
+    hostname === "mainland-answer-record-site.pages.dev"
+  ) {
+    return "https://api.sk1hao.com";
+  }
+
+  return "";
+}
+
+const API_BASE_URL = resolveApiBaseUrl(
+  import.meta.env.VITE_API_BASE_URL,
+  typeof window === "undefined" ? undefined : window.location.hostname
+);
 
 async function request<T>(path: string, init: RequestInit = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
