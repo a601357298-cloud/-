@@ -37,6 +37,7 @@ interface QuestionRow {
   authorName: string;
   createdAt: string;
   createdByUserId: string;
+  isFavorite?: number;
   syncStatus: StoredQuestionRecord["syncStatus"];
   lastSyncedAt: string | null;
   syncError: string | null;
@@ -87,7 +88,8 @@ function toQuestionRecord(row: QuestionRow): QuestionRecord {
     answer: row.answer,
     authorName: row.authorName,
     createdAt: row.createdAt,
-    createdByUserId: row.createdByUserId
+    createdByUserId: row.createdByUserId,
+    isFavorite: Boolean(row.isFavorite)
   };
 }
 
@@ -338,33 +340,59 @@ export class D1QuestionRepo implements QuestionRepo {
   constructor(
     private db: D1Database,
     private categoryStore: D1CategoryStore,
-    private syncJobStore: D1SyncJobStore
+    private syncJobStore: D1SyncJobStore,
+    private now: () => string
   ) {}
 
   async listCategories() {
     return this.categoryStore.list();
   }
 
-  async getQuestions(category: string) {
-    const result = await this.db
-      .prepare(
-        `SELECT
-          id,
-          category_slug AS category,
-          question,
-          answer,
-          author_name AS authorName,
-          created_at AS createdAt,
-          created_by_user_id AS createdByUserId,
-          sync_status AS syncStatus,
-          last_synced_at AS lastSyncedAt,
-          sync_error AS syncError
-        FROM questions
-        WHERE category_slug = ?1
-        ORDER BY created_at ASC`
-      )
-      .bind(category)
-      .all<QuestionRow>();
+  async getQuestions(category: string, viewerUserId?: string | null) {
+    const result = viewerUserId
+      ? await this.db
+          .prepare(
+            `SELECT
+              q.id,
+              q.category_slug AS category,
+              q.question,
+              q.answer,
+              q.author_name AS authorName,
+              q.created_at AS createdAt,
+              q.created_by_user_id AS createdByUserId,
+              CASE WHEN fav.question_id IS NULL THEN 0 ELSE 1 END AS isFavorite,
+              q.sync_status AS syncStatus,
+              q.last_synced_at AS lastSyncedAt,
+              q.sync_error AS syncError
+            FROM questions q
+            LEFT JOIN question_favorites fav
+              ON fav.question_id = q.id
+             AND fav.user_id = ?2
+            WHERE q.category_slug = ?1
+            ORDER BY q.created_at ASC`
+          )
+          .bind(category, viewerUserId)
+          .all<QuestionRow>()
+      : await this.db
+          .prepare(
+            `SELECT
+              id,
+              category_slug AS category,
+              question,
+              answer,
+              author_name AS authorName,
+              created_at AS createdAt,
+              created_by_user_id AS createdByUserId,
+              0 AS isFavorite,
+              sync_status AS syncStatus,
+              last_synced_at AS lastSyncedAt,
+              sync_error AS syncError
+            FROM questions
+            WHERE category_slug = ?1
+            ORDER BY created_at ASC`
+          )
+          .bind(category)
+          .all<QuestionRow>();
 
     return result.results.map(toQuestionRecord);
   }
@@ -398,5 +426,86 @@ export class D1QuestionRepo implements QuestionRepo {
 
     await this.syncJobStore.enqueueCategoryBackup(input.category);
     return input;
+  }
+
+  async getQuestionsCreatedByUser(userId: string) {
+    const result = await this.db
+      .prepare(
+        `SELECT
+          id,
+          category_slug AS category,
+          question,
+          answer,
+          author_name AS authorName,
+          created_at AS createdAt,
+          created_by_user_id AS createdByUserId,
+          0 AS isFavorite,
+          sync_status AS syncStatus,
+          last_synced_at AS lastSyncedAt,
+          sync_error AS syncError
+        FROM questions
+        WHERE created_by_user_id = ?1
+        ORDER BY created_at DESC`
+      )
+      .bind(userId)
+      .all<QuestionRow>();
+
+    return result.results.map(toQuestionRecord);
+  }
+
+  async getFavoriteQuestions(userId: string) {
+    const result = await this.db
+      .prepare(
+        `SELECT
+          q.id,
+          q.category_slug AS category,
+          q.question,
+          q.answer,
+          q.author_name AS authorName,
+          q.created_at AS createdAt,
+          q.created_by_user_id AS createdByUserId,
+          1 AS isFavorite,
+          q.sync_status AS syncStatus,
+          q.last_synced_at AS lastSyncedAt,
+          q.sync_error AS syncError
+        FROM question_favorites fav
+        INNER JOIN questions q ON q.id = fav.question_id
+        WHERE fav.user_id = ?1
+        ORDER BY fav.created_at DESC`
+      )
+      .bind(userId)
+      .all<QuestionRow>();
+
+    return result.results.map(toQuestionRecord);
+  }
+
+  async addFavorite(userId: string, questionId: string) {
+    const existingQuestion = await this.db
+      .prepare(`SELECT id FROM questions WHERE id = ?1 LIMIT 1`)
+      .bind(questionId)
+      .first<{ id: string }>();
+
+    if (!existingQuestion) {
+      return "missing_question";
+    }
+
+    const result = await this.db
+      .prepare(
+        `INSERT OR IGNORE INTO question_favorites (user_id, question_id, created_at)
+        VALUES (?1, ?2, ?3)`
+      )
+      .bind(userId, questionId, this.now())
+      .run();
+
+    return result.meta?.changes ? "created" : "exists";
+  }
+
+  async removeFavorite(userId: string, questionId: string) {
+    const result = await this.db
+      .prepare(`DELETE FROM question_favorites WHERE user_id = ?1 AND question_id = ?2`)
+      .bind(userId, questionId)
+      .run();
+
+    return Boolean(result.meta?.changes);
   }
 }

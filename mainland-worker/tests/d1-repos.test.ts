@@ -33,6 +33,7 @@ class FakeD1Database {
   categories: Array<{ slug: string; name: string; order: number; isDefault: boolean; createdAt: string }> = [];
   questions: Array<QuestionRecord & { syncStatus: string; lastSyncedAt: string | null; syncError: string | null }> = [];
   syncJobs: SyncJobRecord[] = [];
+  favorites: Array<{ userId: string; questionId: string; createdAt: string }> = [];
 
   prepare(sql: string) {
     return new FakeD1PreparedStatement(this, sql);
@@ -45,6 +46,11 @@ class FakeD1Database {
 
     if (sql.includes("FROM users") && sql.includes("WHERE id = ?1")) {
       return (this.users.find((row) => row.id === params[0]) ?? null) as T | null;
+    }
+
+    if (sql.includes("SELECT id FROM questions WHERE id = ?1")) {
+      const question = this.questions.find((row) => row.id === params[0]);
+      return (question ? { id: question.id } : null) as T | null;
     }
 
     return null;
@@ -68,10 +74,14 @@ class FakeD1Database {
       };
     }
 
-    if (sql.includes("FROM questions")) {
+    if (sql.includes("FROM question_favorites fav") && sql.includes("INNER JOIN questions q")) {
+      const userId = String(params[0]);
       return {
-        results: this.questions
-          .filter((question) => question.category === params[0])
+        results: this.favorites
+          .filter((favorite) => favorite.userId === userId)
+          .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+          .map((favorite) => this.questions.find((question) => question.id === favorite.questionId))
+          .filter((question): question is NonNullable<typeof question> => Boolean(question))
           .map((question) => ({
             id: question.id,
             category: question.category,
@@ -80,6 +90,57 @@ class FakeD1Database {
             authorName: question.authorName,
             createdAt: question.createdAt,
             createdByUserId: question.createdByUserId,
+            isFavorite: 1,
+            syncStatus: question.syncStatus,
+            lastSyncedAt: question.lastSyncedAt,
+            syncError: question.syncError
+          })) as T[]
+      };
+    }
+
+    if (sql.includes("FROM questions") && sql.includes("WHERE created_by_user_id = ?1")) {
+      const userId = String(params[0]);
+      return {
+        results: this.questions
+          .filter((question) => question.createdByUserId === userId)
+          .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
+          .map((question) => ({
+            id: question.id,
+            category: question.category,
+            question: question.question,
+            answer: question.answer,
+            authorName: question.authorName,
+            createdAt: question.createdAt,
+            createdByUserId: question.createdByUserId,
+            isFavorite: 0,
+            syncStatus: question.syncStatus,
+            lastSyncedAt: question.lastSyncedAt,
+            syncError: question.syncError
+          })) as T[]
+      };
+    }
+
+    if (sql.includes("FROM questions")) {
+      const category = String(params[0]);
+      const viewerUserId = params[1] ? String(params[1]) : null;
+      return {
+        results: this.questions
+          .filter((question) => question.category === category)
+          .map((question) => ({
+            id: question.id,
+            category: question.category,
+            question: question.question,
+            answer: question.answer,
+            authorName: question.authorName,
+            createdAt: question.createdAt,
+            createdByUserId: question.createdByUserId,
+            isFavorite:
+              viewerUserId &&
+              this.favorites.some(
+                (favorite) => favorite.userId === viewerUserId && favorite.questionId === question.id
+              )
+                ? 1
+                : 0,
             syncStatus: question.syncStatus,
             lastSyncedAt: question.lastSyncedAt,
             syncError: question.syncError
@@ -167,6 +228,30 @@ class FakeD1Database {
       return { success: true, meta: { changes: 1 } };
     }
 
+    if (sql.startsWith("INSERT OR IGNORE INTO question_favorites")) {
+      const existing = this.favorites.find(
+        (item) => item.userId === params[0] && item.questionId === params[1]
+      );
+      if (existing) {
+        return { success: true, meta: { changes: 0 } };
+      }
+
+      this.favorites.push({
+        userId: String(params[0]),
+        questionId: String(params[1]),
+        createdAt: String(params[2])
+      });
+      return { success: true, meta: { changes: 1 } };
+    }
+
+    if (sql.startsWith("DELETE FROM question_favorites")) {
+      const before = this.favorites.length;
+      this.favorites = this.favorites.filter(
+        (item) => !(item.userId === params[0] && item.questionId === params[1])
+      );
+      return { success: true, meta: { changes: before - this.favorites.length } };
+    }
+
     return { success: true, meta: { changes: 0 } };
   }
 }
@@ -178,7 +263,7 @@ function createRepos() {
   const userStore = new D1UserStore(db as unknown as D1Database, now, randomId);
   const categoryStore = new D1CategoryStore(db as unknown as D1Database, now);
   const syncJobStore = new D1SyncJobStore(db as unknown as D1Database, now, randomId);
-  const questionRepo = new D1QuestionRepo(db as unknown as D1Database, categoryStore, syncJobStore);
+  const questionRepo = new D1QuestionRepo(db as unknown as D1Database, categoryStore, syncJobStore, now);
   return { db, userStore, categoryStore, syncJobStore, questionRepo };
 }
 
@@ -231,5 +316,37 @@ describe("mainland D1 repositories", () => {
       status: "pending",
       targetPath: "questions/python.json"
     });
+  });
+
+  test("stores favorites and reflects them in question queries", async () => {
+    const { categoryStore, questionRepo } = createRepos();
+    await categoryStore.create({
+      slug: "python",
+      name: "Python",
+      order: 1,
+      isDefault: true
+    });
+
+    await questionRepo.addQuestion({
+      id: "q-1",
+      category: "python",
+      question: "收藏题",
+      answer: "答案",
+      authorName: "管理员",
+      createdAt: "2026-04-09T00:00:00.000Z",
+      createdByUserId: "admin-1"
+    });
+
+    await questionRepo.addFavorite("user-1", "q-1");
+
+    const categoryQuestions = await questionRepo.getQuestions("python", "user-1");
+    const favoriteQuestions = await questionRepo.getFavoriteQuestions("user-1");
+
+    expect(categoryQuestions).toMatchObject([{ id: "q-1", isFavorite: true }]);
+    expect(favoriteQuestions).toMatchObject([{ id: "q-1", question: "收藏题" }]);
+
+    await questionRepo.removeFavorite("user-1", "q-1");
+    const afterRemove = await questionRepo.getQuestions("python", "user-1");
+    expect(afterRemove).toMatchObject([{ id: "q-1", isFavorite: false }]);
   });
 });

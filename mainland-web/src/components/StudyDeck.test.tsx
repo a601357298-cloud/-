@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, test } from "vitest";
 import { StudyDeck } from "./StudyDeck";
@@ -46,5 +46,26 @@ describe("StudyDeck", () => {
     expect(screen.getByText("什么是深拷贝？")).toBeInTheDocument();
     expect(screen.queryByText("深拷贝会递归复制。")).not.toBeInTheDocument();
   });
-});
 
+  test("shows a favorite action for the current card and calls back when clicked", async () => {
+    const user = userEvent.setup();
+    const favoriteEvents: string[] = [];
+
+    const view = render(
+      <StudyDeck
+        categoryName="Python"
+        questions={questions}
+        initialOrder={questions.map((question) => question.id)}
+        {...({
+          isAuthenticated: true,
+          onToggleFavorite: async (questionId: string) => {
+            favoriteEvents.push(questionId);
+          }
+        } as Record<string, unknown>)}
+      />
+    );
+
+    await user.click(within(view.container).getByRole("button", { name: "收藏" }));
+    expect(favoriteEvents).toEqual(["q1"]);
+  });
+});

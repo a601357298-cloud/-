@@ -32,6 +32,7 @@ export interface QuestionRecord {
   authorName: string;
   createdAt: string;
   createdByUserId: string;
+  isFavorite?: boolean;
 }
 
 export interface StoredQuestionRecord extends QuestionRecord {
@@ -92,8 +93,12 @@ export interface UserStore {
 
 export interface QuestionRepo {
   listCategories(): Promise<CategoryRecord[]>;
-  getQuestions(category: string): Promise<QuestionRecord[]>;
+  getQuestions(category: string, viewerUserId?: string | null): Promise<QuestionRecord[]>;
   addQuestion(input: QuestionRecord): Promise<QuestionRecord>;
+  getQuestionsCreatedByUser(userId: string): Promise<QuestionRecord[]>;
+  getFavoriteQuestions(userId: string): Promise<QuestionRecord[]>;
+  addFavorite(userId: string, questionId: string): Promise<"created" | "exists" | "missing_question">;
+  removeFavorite(userId: string, questionId: string): Promise<boolean>;
 }
 
 export interface CategoryStore {

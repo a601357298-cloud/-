@@ -49,7 +49,7 @@ export default {
     const userStore = new D1UserStore(env.DB, now, createRandomId);
     const categoryStore = new D1CategoryStore(env.DB, now);
     const syncJobStore = new D1SyncJobStore(env.DB, now, createRandomId);
-    const questionRepo = new D1QuestionRepo(env.DB, categoryStore, syncJobStore);
+    const questionRepo = new D1QuestionRepo(env.DB, categoryStore, syncJobStore, now);
     const gitHubBackupRepo = new GitHubQuestionBackupRepo({
       repoFullName: env.GITHUB_REPO,
       token: env.GITHUB_TOKEN,

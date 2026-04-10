@@ -31,11 +31,19 @@ function createInMemoryApp() {
       role: "admin",
       passwordHash: "hashed:secret",
       createdAt: "2026-04-09T00:00:00.000Z"
+    },
+    {
+      id: "user-2",
+      username: "yun",
+      displayName: "大脸猫的忠实粉丝",
+      role: "user",
+      passwordHash: "hashed:cat",
+      createdAt: "2026-04-09T00:00:00.000Z"
     }
   ];
 
   const categories = [
-    { slug: "python", name: "Python", order: 1, isDefault: true, count: 1 }
+    { slug: "python", name: "Python", order: 1, isDefault: true, count: 2 }
   ];
 
   const questions: QuestionRecord[] = [
@@ -47,10 +55,31 @@ function createInMemoryApp() {
       authorName: "系统预置",
       createdAt: "2026-04-09T00:00:00.000Z",
       createdByUserId: "seed"
+    },
+    {
+      id: "python-2",
+      category: "python",
+      question: "我上传的题目",
+      answer: "我的答案",
+      authorName: "管理员",
+      createdAt: "2026-04-09T01:00:00.000Z",
+      createdByUserId: "admin-1"
     }
   ];
 
   const pendingSyncCategories: string[] = [];
+  const favorites = new Map<string, Set<string>>();
+
+  function getFavoriteSet(userId: string) {
+    const existing = favorites.get(userId);
+    if (existing) {
+      return existing;
+    }
+
+    const next = new Set<string>();
+    favorites.set(userId, next);
+    return next;
+  }
 
   const app = createApp({
     passwordService: {
@@ -102,16 +131,39 @@ function createInMemoryApp() {
       async listCategories() {
         return categories;
       },
-      async getQuestions() {
-        return questions;
+      async getQuestions(category: string, userId?: string) {
+        return questions
+          .filter((question) => question.category === category)
+          .map((question) => ({
+            ...question,
+            isFavorite: userId ? getFavoriteSet(userId).has(question.id) : false
+          }));
       },
       async addQuestion(input: QuestionRecord) {
         questions.push(input);
         pendingSyncCategories.push(input.category);
         categories[0] = { ...categories[0], count: questions.length };
         return input;
+      },
+      async getQuestionsCreatedByUser(userId: string) {
+        return questions.filter((question) => question.createdByUserId === userId).reverse();
+      },
+      async getFavoriteQuestions(userId: string) {
+        const favoriteIds = getFavoriteSet(userId);
+        return questions.filter((question) => favoriteIds.has(question.id)).reverse();
+      },
+      async addFavorite(userId: string, questionId: string) {
+        const question = questions.find((item) => item.id === questionId);
+        if (!question) {
+          return false;
+        }
+        getFavoriteSet(userId).add(questionId);
+        return true;
+      },
+      async removeFavorite(userId: string, questionId: string) {
+        return getFavoriteSet(userId).delete(questionId);
       }
-    },
+    } as never,
     now() {
       return "2026-04-09T00:00:00.000Z";
     },
@@ -137,11 +189,12 @@ describe("mainland worker app", () => {
     expect(categoriesResponse.status).toBe(200);
     expect(questionsResponse.status).toBe(200);
     await expect(categoriesResponse.json()).resolves.toMatchObject({
-      categories: [{ slug: "python", count: 1 }]
+      categories: [{ slug: "python", count: 2 }]
     });
-    await expect(questionsResponse.json()).resolves.toMatchObject({
-      questions: [{ category: "python", question: "原题" }]
-    });
+    const questionsPayload = await questionsResponse.json();
+    expect(questionsPayload.questions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ category: "python", question: "原题", isFavorite: false })])
+    );
   });
 
   test("creates a question and leaves it pending GitHub sync", async () => {
@@ -182,5 +235,124 @@ describe("mainland worker app", () => {
       question: "新题目"
     });
     expect(pendingSyncCategories).toEqual(["python"]);
+  });
+
+  test("requires login for personal-center and favorite endpoints", async () => {
+    const { app } = createInMemoryApp();
+
+    const responses = await Promise.all([
+      app.fetch(new Request("https://worker.example/api/me/questions")),
+      app.fetch(new Request("https://worker.example/api/me/favorites")),
+      app.fetch(
+        new Request("https://worker.example/api/me/favorites", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ questionId: "python-1" })
+        })
+      ),
+      app.fetch(new Request("https://worker.example/api/me/favorites/python-1", { method: "DELETE" }))
+    ]);
+
+    for (const response of responses) {
+      expect(response.status).toBe(401);
+    }
+  });
+
+  test("returns my uploaded questions and lets me favorite and unfavorite a question", async () => {
+    const { app } = createInMemoryApp();
+
+    const loginResponse = await app.fetch(
+      new Request("https://worker.example/api/auth/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          username: "admin",
+          password: "secret"
+        })
+      })
+    );
+
+    const cookie = loginResponse.headers.get("set-cookie") ?? "";
+
+    const myQuestionsResponse = await app.fetch(
+      new Request("https://worker.example/api/me/questions", {
+        headers: { cookie }
+      })
+    );
+
+    expect(myQuestionsResponse.status).toBe(200);
+    await expect(myQuestionsResponse.json()).resolves.toMatchObject({
+      questions: [{ id: "python-2", question: "我上传的题目" }]
+    });
+
+    const favoriteResponse = await app.fetch(
+      new Request("https://worker.example/api/me/favorites", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          cookie
+        },
+        body: JSON.stringify({ questionId: "python-1" })
+      })
+    );
+
+    expect(favoriteResponse.status).toBe(201);
+
+    const categoryResponse = await app.fetch(
+      new Request("https://worker.example/api/questions?category=python", {
+        headers: { cookie }
+      })
+    );
+
+    await expect(categoryResponse.json()).resolves.toMatchObject({
+      questions: [
+        { id: "python-1", isFavorite: true },
+        { id: "python-2", isFavorite: false }
+      ]
+    });
+
+    const myFavoritesResponse = await app.fetch(
+      new Request("https://worker.example/api/me/favorites", {
+        headers: { cookie }
+      })
+    );
+
+    expect(myFavoritesResponse.status).toBe(200);
+    await expect(myFavoritesResponse.json()).resolves.toMatchObject({
+      questions: [{ id: "python-1", question: "原题" }]
+    });
+
+    const repeatFavoriteResponse = await app.fetch(
+      new Request("https://worker.example/api/me/favorites", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          cookie
+        },
+        body: JSON.stringify({ questionId: "python-1" })
+      })
+    );
+
+    expect(repeatFavoriteResponse.status).toBe(201);
+
+    const unfavoriteResponse = await app.fetch(
+      new Request("https://worker.example/api/me/favorites/python-1", {
+        method: "DELETE",
+        headers: { cookie }
+      })
+    );
+
+    expect(unfavoriteResponse.status).toBe(204);
+
+    const unfavoritedCategoryResponse = await app.fetch(
+      new Request("https://worker.example/api/questions?category=python", {
+        headers: { cookie }
+      })
+    );
+
+    const unfavoritedPayload = await unfavoritedCategoryResponse.json();
+    expect(unfavoritedPayload.questions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ id: "python-1", isFavorite: false })])
+    );
   });
 });

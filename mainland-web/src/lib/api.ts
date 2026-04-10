@@ -48,6 +48,23 @@ export const api = {
       `/api/questions?category=${encodeURIComponent(category)}`
     );
   },
+  myQuestions() {
+    return request<{ questions: Question[] }>("/api/me/questions");
+  },
+  myFavorites() {
+    return request<{ questions: Question[] }>("/api/me/favorites");
+  },
+  addFavorite(questionId: string) {
+    return request<{ ok: true }>("/api/me/favorites", {
+      method: "POST",
+      body: JSON.stringify({ questionId })
+    });
+  },
+  removeFavorite(questionId: string) {
+    return request<void>(`/api/me/favorites/${encodeURIComponent(questionId)}`, {
+      method: "DELETE"
+    });
+  },
   createQuestion(input: {
     category: string;
     question: string;

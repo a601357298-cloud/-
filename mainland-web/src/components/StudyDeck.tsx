@@ -5,6 +5,10 @@ interface StudyDeckProps {
   categoryName: string;
   questions: Question[];
   initialOrder: string[];
+  isAuthenticated?: boolean;
+  favoritePending?: boolean;
+  onToggleFavorite?: (questionId: string) => Promise<void> | void;
+  onRequireLogin?: () => void;
 }
 
 function buildOrderedQuestions(questions: Question[], initialOrder: string[]) {
@@ -17,7 +21,15 @@ function buildOrderedQuestions(questions: Question[], initialOrder: string[]) {
   return [...ordered, ...missing];
 }
 
-export function StudyDeck({ categoryName, questions, initialOrder }: StudyDeckProps) {
+export function StudyDeck({
+  categoryName,
+  questions,
+  initialOrder,
+  isAuthenticated = false,
+  favoritePending = false,
+  onToggleFavorite,
+  onRequireLogin
+}: StudyDeckProps) {
   const orderedQuestions = buildOrderedQuestions(questions, initialOrder);
   const [index, setIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -99,6 +111,21 @@ export function StudyDeck({ categoryName, questions, initialOrder }: StudyDeckPr
         <button type="button" className="ghost-button" onClick={() => moveTo(index - 1)}>
           上一题
         </button>
+        <button
+          type="button"
+          className={current.isFavorite ? "nav-button nav-button--active" : "nav-button"}
+          onClick={() => {
+            if (!isAuthenticated) {
+              onRequireLogin?.();
+              return;
+            }
+
+            void onToggleFavorite?.(current.id);
+          }}
+          disabled={favoritePending}
+        >
+          {current.isFavorite ? "已收藏" : "收藏"}
+        </button>
         <button type="button" className="primary-button" onClick={() => moveTo(index + 1)}>
           下一题
         </button>
@@ -106,4 +133,3 @@ export function StudyDeck({ categoryName, questions, initialOrder }: StudyDeckPr
     </section>
   );
 }
-

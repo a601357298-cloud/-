@@ -1,5 +1,6 @@
 import { startTransition, useEffect, useState } from "react";
-import { NavLink, useNavigate, useParams } from "react-router-dom";
+import { NavLink, useLocation, useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 import { StudyDeck } from "../components/StudyDeck";
 import { api } from "../lib/api";
 import { buildShuffledOrder } from "../lib/shuffle";
@@ -7,12 +8,15 @@ import type { Category, Question } from "../types";
 
 export function StudyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const { category = "python" } = useParams();
   const [categories, setCategories] = useState<Category[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [order, setOrder] = useState<string[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [error, setError] = useState("");
+  const [favoritePendingId, setFavoritePendingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,9 +117,43 @@ export function StudyPage() {
       {status === "loading" ? <div className="state-panel">正在加载题库...</div> : null}
       {status === "error" ? <div className="state-panel state-panel--error">{error}</div> : null}
       {status === "ready" ? (
-        <StudyDeck categoryName={currentCategory.name} questions={questions} initialOrder={order} />
+        <StudyDeck
+          categoryName={currentCategory.name}
+          questions={questions}
+          initialOrder={order}
+          isAuthenticated={Boolean(user)}
+          favoritePending={Boolean(favoritePendingId)}
+          onRequireLogin={() => {
+            navigate("/login", {
+              state: { from: location.pathname },
+              replace: false
+            });
+          }}
+          onToggleFavorite={async (questionId) => {
+            const target = questions.find((item) => item.id === questionId);
+            if (!target) {
+              return;
+            }
+
+            setFavoritePendingId(questionId);
+            try {
+              if (target.isFavorite) {
+                await api.removeFavorite(questionId);
+              } else {
+                await api.addFavorite(questionId);
+              }
+
+              setQuestions((currentQuestions) =>
+                currentQuestions.map((item) =>
+                  item.id === questionId ? { ...item, isFavorite: !item.isFavorite } : item
+                )
+              );
+            } finally {
+              setFavoritePendingId(null);
+            }
+          }}
+        />
       ) : null}
     </div>
   );
 }
-

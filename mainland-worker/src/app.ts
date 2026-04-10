@@ -27,6 +27,10 @@ interface UpdateUserBody {
   role?: UserRole;
 }
 
+interface FavoriteBody {
+  questionId?: string;
+}
+
 function toPublicUser(user: AppDeps["userStore"] extends { getById(id: string): Promise<infer T> } ? NonNullable<T> : never): PublicUser {
   return {
     id: user.id,
@@ -123,6 +127,7 @@ export function createApp(deps: AppDeps) {
       }
 
       if (url.pathname === "/api/questions" && request.method === "GET") {
+        const currentUser = await getCurrentUser(request, deps);
         const category = sanitizeText(url.searchParams.get("category"));
         if (!category) {
           return json({ error: "缺少分类参数。" }, { status: 400 }, request, deps.uiOrigin);
@@ -133,7 +138,7 @@ export function createApp(deps: AppDeps) {
           return json({ error: "分类不存在。" }, { status: 404 }, request, deps.uiOrigin);
         }
 
-        const questions = await deps.questionRepo.getQuestions(category);
+        const questions = await deps.questionRepo.getQuestions(category, currentUser?.id ?? null);
         return json({ questions }, { status: 200 }, request, deps.uiOrigin);
       }
 
@@ -193,6 +198,61 @@ export function createApp(deps: AppDeps) {
 
         const users = await deps.userStore.list();
         return json({ users: users.map(toPublicUser) }, { status: 200 }, request, deps.uiOrigin);
+      }
+
+      if (url.pathname === "/api/me/questions" && request.method === "GET") {
+        const user = await getCurrentUser(request, deps);
+        if (!user) {
+          return json({ error: "请先登录。" }, { status: 401 }, request, deps.uiOrigin);
+        }
+
+        const questions = await deps.questionRepo.getQuestionsCreatedByUser(user.id);
+        return json({ questions }, { status: 200 }, request, deps.uiOrigin);
+      }
+
+      if (url.pathname === "/api/me/favorites" && request.method === "GET") {
+        const user = await getCurrentUser(request, deps);
+        if (!user) {
+          return json({ error: "请先登录。" }, { status: 401 }, request, deps.uiOrigin);
+        }
+
+        const questions = await deps.questionRepo.getFavoriteQuestions(user.id);
+        return json({ questions }, { status: 200 }, request, deps.uiOrigin);
+      }
+
+      if (url.pathname === "/api/me/favorites" && request.method === "POST") {
+        const user = await getCurrentUser(request, deps);
+        if (!user) {
+          return json({ error: "请先登录。" }, { status: 401 }, request, deps.uiOrigin);
+        }
+
+        const body = await readJson<FavoriteBody>(request);
+        const questionId = sanitizeText(body?.questionId);
+        if (!questionId) {
+          return json({ error: "缺少题目 ID。" }, { status: 400 }, request, deps.uiOrigin);
+        }
+
+        const result = await deps.questionRepo.addFavorite(user.id, questionId);
+        if (result === "missing_question") {
+          return json({ error: "题目不存在。" }, { status: 404 }, request, deps.uiOrigin);
+        }
+
+        return json({ ok: true }, { status: 201 }, request, deps.uiOrigin);
+      }
+
+      if (url.pathname.startsWith("/api/me/favorites/") && request.method === "DELETE") {
+        const user = await getCurrentUser(request, deps);
+        if (!user) {
+          return json({ error: "请先登录。" }, { status: 401 }, request, deps.uiOrigin);
+        }
+
+        const questionId = sanitizeText(url.pathname.slice("/api/me/favorites/".length));
+        if (!questionId) {
+          return json({ error: "缺少题目 ID。" }, { status: 400 }, request, deps.uiOrigin);
+        }
+
+        await deps.questionRepo.removeFavorite(user.id, questionId);
+        return empty({ status: 204 }, request, deps.uiOrigin);
       }
 
       if (url.pathname === "/api/admin/users" && request.method === "POST") {

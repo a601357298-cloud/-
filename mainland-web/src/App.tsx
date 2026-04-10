@@ -4,6 +4,7 @@ import { AppShell } from "./components/AppShell";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AdminUsersPage } from "./pages/AdminUsersPage";
 import { LoginPage } from "./pages/LoginPage";
+import { MePage } from "./pages/MePage";
 import { StudyPage } from "./pages/StudyPage";
 import { UploadPage } from "./pages/UploadPage";
 
@@ -19,6 +20,7 @@ export function App() {
 
             <Route element={<ProtectedRoute />}>
               <Route path="/upload" element={<UploadPage />} />
+              <Route path="/me" element={<MePage />} />
             </Route>
 
             <Route element={<ProtectedRoute requireAdmin />}>
@@ -30,4 +32,3 @@ export function App() {
     </AuthProvider>
   );
 }
-

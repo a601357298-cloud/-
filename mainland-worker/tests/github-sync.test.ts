@@ -53,6 +53,18 @@ function createHarness() {
     },
     async addQuestion(input: QuestionRecord) {
       return input;
+    },
+    async getQuestionsCreatedByUser() {
+      return [];
+    },
+    async getFavoriteQuestions() {
+      return [];
+    },
+    async addFavorite() {
+      return "created";
+    },
+    async removeFavorite() {
+      return true;
     }
   };
 

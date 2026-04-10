@@ -35,6 +35,15 @@ export function AppShell() {
             上传题目
           </NavLink>
 
+          {user ? (
+            <NavLink
+              className={({ isActive }) => (isActive ? "nav-button nav-button--active" : "nav-button")}
+              to="/me"
+            >
+              个人中心
+            </NavLink>
+          ) : null}
+
           {user?.role === "admin" ? (
             <NavLink
               className={({ isActive }) => (isActive ? "nav-button nav-button--active" : "nav-button")}

@@ -22,5 +22,5 @@ export interface Question {
   authorName: string;
   createdAt: string;
   createdByUserId: string;
+  isFavorite?: boolean;
 }
-

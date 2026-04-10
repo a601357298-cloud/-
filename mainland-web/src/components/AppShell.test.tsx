@@ -8,10 +8,10 @@ const logout = vi.fn();
 vi.mock("../auth/AuthContext", () => ({
   useAuth: () => ({
     user: {
-      id: "admin-1",
-      username: "admin",
-      displayName: "管理员",
-      role: "admin",
+      id: "user-1",
+      username: "yun",
+      displayName: "大脸猫的忠实粉丝",
+      role: "user",
       createdAt: "2026-04-08T00:00:00.000Z"
     },
     logout
@@ -19,20 +19,20 @@ vi.mock("../auth/AuthContext", () => ({
 }));
 
 describe("AppShell", () => {
-  test("highlights the active nav button and always offers a study home entry", () => {
+  test("shows a personal center entry and highlights it when active", () => {
     render(
-      <MemoryRouter initialEntries={["/admin/users"]}>
+      <MemoryRouter initialEntries={["/me"]}>
         <Routes>
           <Route element={<AppShell />}>
-            <Route path="/admin/users" element={<div>admin page</div>} />
+            <Route path="/me" element={<div>me page</div>} />
           </Route>
         </Routes>
       </MemoryRouter>
     );
 
     expect(screen.getByRole("link", { name: "刷题主页" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "管理账号" })).toHaveClass("nav-button--active");
+    expect(screen.getByRole("link", { name: "个人中心" })).toHaveClass("nav-button--active");
     expect(screen.getByRole("link", { name: "上传题目" })).not.toHaveClass("nav-button--active");
+    expect(screen.queryByRole("link", { name: "管理账号" })).not.toBeInTheDocument();
   });
 });
-
