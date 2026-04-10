@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, test, vi } from "vitest";
 import { App } from "../App";
 
@@ -54,14 +55,21 @@ vi.mock("../lib/api", () => ({
 }));
 
 describe("Me page", () => {
-  test("shows my uploaded questions and my favorite questions", async () => {
+  test("keeps both sections collapsed by default and expands them on demand", async () => {
+    const user = userEvent.setup();
     window.history.replaceState({}, "", "/#/me");
 
     render(<App />);
 
     expect(await screen.findByRole("heading", { name: "我上传的题目" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "我收藏的题目" })).toBeInTheDocument();
+    expect(screen.queryByText("我上传的题目", { selector: "strong" })).not.toBeInTheDocument();
+    expect(screen.queryByText("我收藏的题目", { selector: "strong" })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "展开我上传的题目" }));
     expect(screen.getByText("我上传的题目", { selector: "strong" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "展开我收藏的题目" }));
     expect(screen.getByText("我收藏的题目", { selector: "strong" })).toBeInTheDocument();
   });
 });

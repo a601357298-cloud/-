@@ -332,7 +332,8 @@ button {
   gap: 4px;
 }
 
-.personal-section__header,
+.personal-section__toggle,
+.personal-section__toggle-meta,
 .personal-question-card,
 .personal-question-card__meta,
 .personal-question-card__answer,
@@ -341,9 +342,23 @@ button {
   gap: 12px;
 }
 
-.personal-section__header {
+.personal-section__toggle {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+}
+
+.personal-section__toggle-meta {
+  justify-items: end;
+}
+
+.personal-section__chevron {
+  color: rgba(31, 61, 43, 0.72);
+  font-size: 0.92rem;
 }
 
 .personal-question-card {
@@ -397,9 +412,13 @@ button {
 
   .study-footer,
   .study-actions,
-  .personal-section__header,
+  .personal-section__toggle,
   .personal-question-card__meta {
     grid-template-columns: 1fr;
+  }
+
+  .personal-section__toggle-meta {
+    justify-items: start;
   }
 
   .hero-panel {

@@ -16,6 +16,7 @@ interface QuestionListSectionProps {
   title: string;
   emptyText: string;
   questions: Question[];
+  defaultExpanded?: boolean;
   onRemoveFavorite?: (questionId: string) => Promise<void> | void;
 }
 
@@ -23,8 +24,10 @@ function QuestionListSection({
   title,
   emptyText,
   questions,
+  defaultExpanded = false,
   onRemoveFavorite
 }: QuestionListSectionProps) {
+  const [sectionExpanded, setSectionExpanded] = useState(defaultExpanded);
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
 
   function toggleExpanded(questionId: string) {
@@ -37,17 +40,28 @@ function QuestionListSection({
 
   return (
     <section className="personal-section form-card form-card--wide">
-      <div className="personal-section__header">
+      <button
+        type="button"
+        className="personal-section__toggle"
+        onClick={() => setSectionExpanded((current) => !current)}
+        aria-expanded={sectionExpanded}
+        aria-label={`${sectionExpanded ? "收起" : "展开"}${title}`}
+      >
         <div>
           <p className="eyebrow">个人中心</p>
           <h2>{title}</h2>
         </div>
-        <span className="status-pill">{questions.length} 题</span>
-      </div>
+        <div className="personal-section__toggle-meta">
+          <span className="status-pill">{questions.length} 题</span>
+          <span className="personal-section__chevron" aria-hidden="true">
+            {sectionExpanded ? "收起" : "展开"}
+          </span>
+        </div>
+      </button>
 
-      {questions.length === 0 ? <div className="state-panel">{emptyText}</div> : null}
+      {!sectionExpanded ? null : questions.length === 0 ? <div className="state-panel">{emptyText}</div> : null}
 
-      {questions.length > 0 ? (
+      {sectionExpanded && questions.length > 0 ? (
         <div className="personal-question-list">
           {questions.map((question) => {
             const expanded = expandedIds.includes(question.id);
